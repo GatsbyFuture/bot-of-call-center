@@ -1,0 +1,27 @@
+{
+  "name": "ProfMedServiceBot",
+  "version": "1.0.0",
+  "description": "This bot can send the staff's salary",
+  "main": "app.js",
+  "scripts": {
+    "test": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "keywords": [
+    "staff",
+    "salary",
+    "show salary"
+  ],
+  "author": "Raxmatov Eldorbek",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.25.0",
+    "config": "^3.3.7",
+    "dotenv": "^16.0.0",
+    "mysql2": "^2.3.3",
+    "nodemon": "^2.0.15",
+    "telegraf": "^3.38.0",
+    "telegraf-i18n": "^6.6.0",
+    "xlsx": "^0.18.5"
+  }
+}

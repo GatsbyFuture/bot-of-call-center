@@ -56,7 +56,7 @@ const driver_is_busy = async (id) => {
         // boshligini tekshirish uchun query
         let question = `select busy from tb_driver where telegram_id = ? and status = 1`;
         let answer = await pool.query(question, [id]);
-        console.log(answer);
+        // console.log(answer);
         // console.log(answer[0][0]["тел_номер"]);
         if (answer[0][0]["busy"] == 1) {
             return true;
@@ -214,6 +214,27 @@ const get_optimal_id = async (id) => {
         console.log("optimal id olish xatolik :" + err);
     }
 }
+// xali yetkazib berilagan mahsulotlar soni...
+const amout_of_deliver = async (array) => {
+    try {
+        let ortder_qestion = `select 
+        status_of_deliver
+        from
+        tb_order
+        where id = ?
+        `;
+        let data_of_orders = 0;
+        for (let i = 0; i < array.length; i++) {
+            let obj = await pool.query(ortder_qestion, [parseInt(array[i])]);
+            // console.log(obj[0][0]);
+            if (obj[0][0]["status_of_deliver"] == 1)
+                data_of_orders++;
+        }
+        return data_of_orders;
+    } catch (err) {
+        console.log("Dateni tortishda xatolik :" + err);
+    }
+}
 // optimal idlarni chaqirib olish...
 const get_product_data = async (id) => {
     try {
@@ -231,7 +252,7 @@ const get_product_data = async (id) => {
         from
         tb_order
         left join tb_customer on tb_customer.id = tb_order.customer_id
-        where tb_order.status_of_deliver = 1 and tb_order.id = ?
+        where tb_order.id = ?
         `;
         let obj = await pool.query(ortder_qestion, [id]);
         return obj[0][0];
@@ -239,44 +260,55 @@ const get_product_data = async (id) => {
         console.log("Product datasini tortishda xatolik :" + err);
     }
 }
-
-
-
-// joriy oylikni tortish...
-// const need_data = async (id) => {
-//     try {
-//         // mahsulotni id bo'yicha joylashtirish
-//         let question = `select
-//         optimal_sort
-//         from
-//         tb_optimal_route
-//         where status = 1 and chat_id_of_driver = ?`;
-//         let ids_of_orders = await pool.query(question, [id]);
-//         // console.log(ids_of_orders[0][0]["optimal_sort"]);
-//         let array_id = ids_of_orders[0][0]["optimal_sort"].split(",");
-//         let ortder_qestion = `select tb_order.product_name,
-//         tb_order.started_time,
-//         tb_order.shipment_payment,
-//         tb_order.product_payment,
-//         tb_customer.name,
-//         tb_customer.lastname,
-//         tb_customer.phone_number
-//         from
-//         tb_order
-//         left join tb_customer on tb_customer.id = tb_order.customer_id
-//         where tb_order.status_of_deliver = 1 and tb_order.id = ?
-//         `;
-//         let data_of_orders = [];
-//         for (let i = 0; i < array_id.length; i++) {
-//             let obj = await pool.query(ortder_qestion, [parseInt(array_id[i])]);
-//             // console.log(obj[0][0]);
-//             data_of_orders.push(obj[0][0]);
-//         }
-//         return data_of_orders;
-//     } catch (err) {
-//         console.log("Dateni tortishda xatolik :" + err);
-//     }
-// }
+// productlarni delever statusini o'zgarirish...
+const update_delever_status = async (id, key) => {
+    try {
+        // productni olib yuborish...
+        let ortder_qestion = `
+        update
+        tb_order
+        set
+        status_of_deliver = ?
+        status = 0
+        where
+        id = ?
+        `;
+        let obj = await pool.query(ortder_qestion, [key, id]);
+        // console.log(obj[0]);
+        // return obj[0][0];
+    } catch (err) {
+        console.log("Product datasini tortishda xatolik :" + err);
+    }
+}
+// yetkazib berish nixoyasiga yetganidan keyin busyni 0 qilib qo'yish...
+const update_driver_busy = async (id_of_product) => {
+    try {
+        // haydovchini id sini olib olish uchun...
+        let get_id_of_driver = `
+        select
+        which_driver
+        from
+        tb_order
+        where
+        id = ?
+        `;
+        let id_for_driver = await pool.query(get_id_of_driver, [id_of_product]);
+        // productni olib yuborish...
+        let ortder_qestion = `
+        update
+        tb_drier
+        set
+        busy = 0
+        where
+        id = ?
+        `;
+        let obj = await pool.query(ortder_qestion, [id_for_driver[0][0]["which_driver"]]);
+        // console.log(obj[0]);
+        // return obj[0];
+    } catch (err) {
+        console.log("Product datasini tortishda xatolik :" + err);
+    }
+}
 
 module.exports = {
     check_number,
@@ -293,6 +325,12 @@ module.exports = {
     get_optimal_url,
     // optimal idlarni olib olish
     get_optimal_id,
+    // yetkazib berilishi kerak bo'lgan product soni
+    amout_of_deliver,
     // optimal productni olib kelish
-    get_product_data
+    get_product_data,
+    // deliverni statusini orderdan 2 ga ko'tarish
+    update_delever_status,
+    // driver busyni statusini 0 qilib qoyish...
+    update_driver_busy
 }

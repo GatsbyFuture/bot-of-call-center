@@ -21,7 +21,8 @@ const {
     driver_is_busy,
     get_optimal_url,
     get_optimal_id,
-    get_product_data
+    get_product_data,
+    amout_of_deliver
 } = require('../model/crudData');
 String.prototype.insert = function (index, string) {
     var ind = index < 0 ? this.length + index : index;
@@ -182,8 +183,9 @@ const show_ready_product = async (ctx) => {
         // tablitsa qilib driverga ko'rsatish (optimal ketma - ketlikni nomerini olib olish)..
         ctx.session.get_optimal_id = await get_optimal_id(ctx.message.from.id);
         // tekshiramiz agar malumotlar yetkazilsa yoki yo'q shunga qarb kamayib borishini balans qilamiz..
-        ctx.session.id_balans = ctx.session.get_optimal_id.length;
-        console.log(ctx.session.get_optimal_id.length);
+        // ctx.session.id_balans = ctx.session.get_optimal_id.length;
+        ctx.session.id_balans = await amout_of_deliver(ctx.session.get_optimal_id);
+        // console.log(ctx.session.get_optimal_id.length);
         ctx.session.count = 0;
         // productni olib kelish..
         let product = await get_product_data(ctx.session.get_optimal_id[ctx.session.count]);
@@ -194,17 +196,17 @@ const show_ready_product = async (ctx) => {
         } else if (ctx.session.id_balans == 0) {
             btn_type.push(Markup.callbackButton(ctx.i18n.t('done_all_products'), 'done_all_products'));
         }
-        let status_text = "";
+        let status_text = ctx.i18n.t('procces_of_deliver');
         if (product["status_of_deliver"] == 2) {
-            status_text.concat((ctx.i18n.t('status_deleved1')))
+            status_text = ctx.i18n.t('status_deleved1');
         } else if (product["status_of_deliver"] == 3) {
-            status_text.concat((ctx.i18n.t('status_deleved2')))
+            status_text = ctx.i18n.t('status_deleved2');
         }
         // olib kelingan productni textini yasab olish...
         const show_board0 = await show_data_board(ctx, product);
         await ctx.telegram
             .sendMessage(ctx.message.from.id,
-                show_board0 + `\n\🧮 Product statusi : ${status_text}`, {
+                show_board0 + `\n\n🧮 Product statusi : ${status_text}`, {
                 reply_markup: Markup.inlineKeyboard([
                     [{
                         text: ctx.i18n.t('linkLocation'),
@@ -490,7 +492,7 @@ const show_data_board = async (ctx, data) => {
         // console.log(data);
         if (data != undefined) {
             return ctx.i18n.t("show_ready_products")
-                .replace('{n0}', ctx.session.count)
+                .replace('{n0}', ctx.session.count + 1)
                 .replace('{n1}', data["started_time"].toString().substring(0, 24))
                 .replace('{n2}', data["lastname"])
                 .replace('{n3}', data["name"])

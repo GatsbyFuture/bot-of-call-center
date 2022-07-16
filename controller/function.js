@@ -93,7 +93,7 @@ const sendContact = async (ctx, phoneNumber) => {
 // the menu for driver...
 const functions_for_driver = async (ctx) => {
     try {
-        // tekshirib ko'ramiz agar agar bad bo'lsa unga tavar btn qo'shib beramiz...
+        // tekshirib ko'ramiz agar bad bo'lsa unga tavar btn qo'shib beramiz...
         let isTrue = await driver_is_busy(ctx.session.chat_id);
         let btn = [];
         if (isTrue) {
@@ -227,6 +227,10 @@ const show_ready_product = async (ctx) => {
         console.log("barcha product boardini chiqarishda xatolik: " + err);
     }
 }
+// haydovchini 1 oyik xisoboti uchun...
+
+
+
 
 
 // arxivdan malumotlarni tortib kelish va taqdim etish...

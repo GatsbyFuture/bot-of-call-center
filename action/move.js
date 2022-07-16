@@ -288,8 +288,8 @@ composer.action("deliver_error", async (ctx) => {
 // barcha productni egasiga yetkazib berilgandan keyin...
 composer.action("done_all_products", async (ctx) => {
     try {
-        await update_driver_busy(ctx.session.get_optimal_id[ctx.session.count]);
-        await ctx.editMessageText(ctx.i18n.t('finished_deliver'),{
+        await update_driver_busy(ctx.session.chat_id);
+        await ctx.editMessageText(ctx.i18n.t('finished_deliver'), {
             parse_mode: 'html'
         })
             .then();

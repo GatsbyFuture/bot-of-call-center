@@ -58,7 +58,7 @@ composer.on('message', async (ctx) => {
             case ctx.i18n.t('mainDriverbtn1'):
                 await show_ready_product(ctx); break;
             // await getRoute(ctx); break;
-            // case ctx.i18n.t('mainDriverbtn3'):
+            case ctx.i18n.t('mainDriverbtn3'):
             // await show_ready_product(ctx); break;
 
 

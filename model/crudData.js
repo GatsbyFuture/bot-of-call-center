@@ -281,30 +281,18 @@ const update_delever_status = async (id, key) => {
     }
 }
 // yetkazib berish nixoyasiga yetganidan keyin busyni 0 qilib qo'yish...
-const update_driver_busy = async (id_of_product) => {
+const update_driver_busy = async (chat_id) => {
     try {
-        // haydovchini id sini olib olish uchun...
-        let get_id_of_driver = `
-        select
-        which_driver
-        from
-        tb_order
-        where
-        id = ?
-        `;
-        let id_for_driver = await pool.query(get_id_of_driver, [id_of_product]);
-        // productni olib yuborish...
-        let ortder_qestion = `
+        let update_of_busy = `
         update
-        tb_drier
+        tb_driver
         set
         busy = 0
         where
-        id = ?
+        telegram_id = ?
         `;
-        let obj = await pool.query(ortder_qestion, [id_for_driver[0][0]["which_driver"]]);
-        // console.log(obj[0]);
-        // return obj[0];
+        let id_for_driver = await pool.query(update_of_busy, [chat_id]);
+        console.log(id_for_driver);
     } catch (err) {
         console.log("Product datasini tortishda xatolik :" + err);
     }

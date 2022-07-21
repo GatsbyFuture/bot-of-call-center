@@ -19,11 +19,19 @@ const sleep_status = async () => {
         console.log("statuslarni 0 qilishda xatolik: " + err);
     }
 }
+// tel nomerni formatlash uchun...
+const form_phone_number = (number) => {
+    let phone_number = number.replace(/-/g, '');
+    // console.log(phone_number);
+    return "+998 " + phone_number.substring(phone_number.length - 9, phone_number.length).replace(/\D+/g, '').replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '($1) $2-$3-$4');
+}
+// tel nomer bo'yicha tekshirib ko'rish...
 const check_number = async (id, phone_number) => {
     try {
-        let number = phone_number
-            .replace(/ /g, "")
-            .substring(3);
+        let number = form_phone_number(phone_number);         
+        // phone_number
+        //     .replace(/ /g, "")
+        //     .substring(3);
         console.log(number);
         let who_am_i = { user_right: false, driver_right: false };
         // driver uchun tekshirib ko'ramiz...

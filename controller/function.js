@@ -12,6 +12,7 @@ const {
     data_reportW
 } = require('../model/packData');
 const {
+    check_user_with_telegramid,
     check_number,
     // need_data,
     sleep_status,
@@ -28,6 +29,23 @@ String.prototype.insert = function (index, string) {
     var ind = index < 0 ? this.length + index : index;
     return this.substring(0, ind) + string + this.substring(ind);
 };
+// session topilmay qolganda bazadan tekshirib olish bor yo'qligini userni
+const check_session = async (ctx) => {
+    let data = await check_user_with_telegramid(ctx.update.message.from.id);
+    if (data["customer"] || data["driver"] || data["seller"]) {
+        if (data["customer"])
+            ctx.session.checkCustomer = true;
+        else if (data["driver"])
+            ctx.session.checkDriver = true;
+        else if (data["seller"])
+            ctx.session.checkSeller = true;
+        // funksiyalarni ochish...
+        await start_fun(ctx);
+    } else {
+        ctx.replyWithHTML("Iltimos qayta ro'yxatdan o'ting!")
+    }
+}
+
 // start bosganda ishga tushadigan function...
 const start_fun = async (ctx) => {
     await ctx.replyWithHTML("<b>Tilni tanlang | Тилни танланг \n Выберите язык ⬇️</b>",
@@ -151,8 +169,8 @@ const getRoute = async (ctx) => {
     }
 }
 
-// open the main menu...
-const allBaseBtn = async (ctx) => {
+// customer uchun asosiy btn larni chiqarish...
+const Btn_for_customer = async (ctx) => {
     await ctx.replyWithHTML(ctx.i18n.t('mainFuntion3'),
         Markup.keyboard([
             [{
@@ -168,6 +186,24 @@ const allBaseBtn = async (ctx) => {
     )
         .then();
 }
+// customer uchun asosiy btn larni chiqarish...
+const Btn_for_driver = async (ctx) => {
+    await ctx.replyWithHTML(ctx.i18n.t('mainFuntion3'),
+        Markup.keyboard([
+            [{
+                text: ctx.i18n.t('mainFuntion0'),
+                request_location: true
+            }],
+            [ctx.i18n.t('mainFuntion1')],
+            [ctx.i18n.t('mainFuntion2')]
+        ])
+            .oneTime()
+            .resize()
+            .extra()
+    )
+        .then();
+}
+
 // arxiv datani bittalab olib kelish bazadan...
 const show_ready_product = async (ctx) => {
     try {
@@ -585,11 +621,12 @@ const isItNumber = async (params) => {
     }
 }
 module.exports = {
+    check_session,
     start_fun,
     youWantConnect,
     pushContanct,
     sendContact,
-    allBaseBtn,
+    Btn_for_customer,
     mainThree,
     // arxivni ko'rish uchun...
     show_data_board,

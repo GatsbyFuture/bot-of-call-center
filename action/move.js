@@ -1,5 +1,7 @@
 const { Composer } = require('telegraf');
-const { youWantConnect, pushContanct, functions_for_driver, allBaseBtn, show_data_board } = require('../controller/function');
+const { youWantConnect, pushContanct,
+    functions_for_driver, Btn_for_customer,
+    show_data_board, check_session } = require('../controller/function');
 const Extra = require('telegraf/extra');
 const Markup = require("telegraf/markup");
 const { bot } = require("../core/run");
@@ -10,15 +12,17 @@ const composer = new Composer();
 // choise language actions...
 composer.action('rus', async (ctx) => {
     try {
-        if (ctx.session.checkUser) {
+        if (ctx.session.checkCustomer) {
             ctx.i18n.locale('ru');
-            await allBaseBtn(ctx);
+            await Btn_for_customer(ctx);
         } else if (ctx.session.checkDriver) {
             ctx.i18n.locale('ru');
             await functions_for_driver(ctx)
-        } else {
+        } else if (ctx.session.checkSeller) {
             ctx.i18n.locale('ru');
-            await youWantConnect(ctx);
+            await Btn_for_customer(ctx);
+        } else {
+            await check_session(ctx);
         }
         ctx.deleteMessage().then();;
     } catch (err) {
@@ -27,15 +31,17 @@ composer.action('rus', async (ctx) => {
 });
 composer.action('uz', async (ctx) => {
     try {
-        if (ctx.session.checkUser) {
+        if (ctx.session.checkCustomer) {
             ctx.i18n.locale('oz');
-            await allBaseBtn(ctx);
+            await Btn_for_customer(ctx);
         } else if (ctx.session.checkDriver) {
             ctx.i18n.locale('oz');
             await functions_for_driver(ctx)
-        } else {
+        } else if (ctx.session.checkSeller) {
             ctx.i18n.locale('oz');
-            await youWantConnect(ctx);
+            await Btn_for_customer(ctx);
+        } else {
+            await check_session(ctx);
         }
         ctx.deleteMessage().then();;
     } catch (err) {
@@ -44,15 +50,17 @@ composer.action('uz', async (ctx) => {
 });
 composer.action('уз', async (ctx) => {
     try {
-        if (ctx.session.checkUser) {
+        if (ctx.session.checkCustomer) {
             ctx.i18n.locale('uz');
-            await allBaseBtn(ctx);
+            await Btn_for_customer(ctx);
         } else if (ctx.session.checkDriver) {
             ctx.i18n.locale('uz');
             await functions_for_driver(ctx)
-        } else {
+        } else if (ctx.session.checkSeller) {
             ctx.i18n.locale('uz');
-            await youWantConnect(ctx);
+            await Btn_for_customer(ctx);
+        } else {
+            await check_session(ctx);
         }
         ctx.deleteMessage().then();;
     } catch (err) {

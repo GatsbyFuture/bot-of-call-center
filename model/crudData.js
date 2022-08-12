@@ -28,7 +28,7 @@ const form_phone_number = (number) => {
 // tel nomer bo'yicha tekshirib ko'rish...
 const check_number = async (id, phone_number) => {
     try {
-        let number = form_phone_number(phone_number);         
+        let number = form_phone_number(phone_number);
         // phone_number
         //     .replace(/ /g, "")
         //     .substring(3);
@@ -121,23 +121,73 @@ const all_users_id = async () => {
         console.log("All users send message: " + err);
     }
 }
-// userni bor yo'qligini tekshirish...
-const check_user = async (id) => {
+// userlarni tekshirish bor yo'qligini telegram id bilan...
+const check_user_with_telegramid = async (id) => {
     try {
-        let isUser = false;
+        let isCustomer = false;
         let isDriver = false;
-        let question_user = `select id from tb_customer where telegram_id = ? and status = 1`;
+        let isSeller = false;
+
+        let question_customer = `select id from tb_customer where telegram_id = ? and status = 1`;
         let question_driver = `select id from tb_driver where telegram_id = ? and status = 1`;
-        let answer_user = await pool.query(question_user, [id]);
+        let question_seller = `select id from tb_seller where telegram_id = ? and status = 1`;
+
+        // aptimal tekshirish varianti...
         let answer_driver = await pool.query(question_driver, [id]);
-        // console.log(answer)
-        if (answer_user[0].length == 1)
-            isUser = true;
         if (answer_driver[0].length == 1)
             isDriver = true;
-        return { user: isUser, driver: isDriver }
+        let answer_seller = await pool.query(question_seller, [id]);
+        if (answer_seller[0].length == 1)
+            isSeller = true;
+        let answer_customer = await pool.query(question_customer, [id]);
+        if (answer_customer[0].length == 1)
+            isCustomer = true;
+
+        return { customer: isCustomer, driver: isDriver, seller: isSeller };
+
     } catch (err) {
-        console.log("Userni mavjudligini tekshirishda xatolik ->" + err);
+        console.log("userlarni telegram id bo'yicha tekshirish bor yoki yo'qligini, xatolik! ->" + err);
+    }
+}
+
+// userni bor yo'qligini tekshirish key value bilan...
+const check_user_with_key = async (chat_id, id) => {
+    try {
+        let isCustomer = false;
+        let isDriver = false;
+        let isSeller = false;
+        // key bilan qidirib topish uchun...
+        let question_customer = `select id from tb_customer where customer_key = ? and status = 1`;
+        let question_driver = `select id from tb_driver where driver_key = ? and status = 1`;
+        let question_seller = `select id from tb_seller where seller_key = ? and status = 1`;
+        // telegram idini bazaga saqolab qo'yish uchun...
+        let update_driver = `update tb_driver set telegram_id = ? where driver_key = ?`;
+        let update_seller = `update tb_seller set telegram_id = ? where seller_key = ?`;
+        let update_customer = `update tb_customer set telegram_id = ? where customer_key = ?`;
+
+        // aptimal tekshirish varianti...
+        let key_length = id.split("-")[0].length;
+        switch (key_length) {
+            case 2: let answer_driver = await pool.query(question_driver, [id]);
+                if (answer_driver[0].length == 1)
+                    isDriver = true;
+                await pool.query(update_driver, [chat_id, id]);
+                break;
+            case 3: let answer_seller = await pool.query(question_seller, [id]);
+                if (answer_seller[0].length == 1)
+                    isSeller = true;
+                await pool.query(update_seller, [chat_id, id]);
+                break;
+            case 4: let answer_customer = await pool.query(question_customer, [id]);
+                if (answer_customer[0].length == 1)
+                    isCustomer = true;
+                await pool.query(update_customer, [chat_id, id]);
+                break;
+        }
+        return { customer: isCustomer, driver: isDriver, seller: isSeller };
+
+    } catch (err) {
+        console.log("userlarni unit id bo'yicha tekshirish bor yoki yo'qligini, xatolik!->" + err);
     }
 }
 // arxive oylik xisoboti...
@@ -308,7 +358,8 @@ const update_driver_busy = async (chat_id) => {
 
 module.exports = {
     check_number,
-    check_user,
+    check_user_with_key,
+    check_user_with_telegramid,
     // need_data,
     sleep_status,
     archive_data,

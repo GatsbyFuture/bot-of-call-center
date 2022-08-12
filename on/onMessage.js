@@ -20,22 +20,6 @@ const config = require('config');
 // my chat_id 1563800631 
 composer.on('message', async (ctx) => {
     try {
-        let phoneNumber = undefined;
-        if (ctx.message.contact) {
-            phoneNumber = await isItNumber(ctx.message.contact.phone_number);
-            // console.log(phoneNumber);
-            ctx.replyWithHTML('Nomeringiz tekshirilmoqda...' + phoneNumber);
-            await sendContact(ctx, phoneNumber);
-        } else if (ctx.i18n.t('sendConConsole') == ctx.message.text) {
-            await ctx.reply(
-                ctx.i18n.t('load'),
-                {
-                    parse_mode: "markdown",
-                    reply_markup: { remove_keyboard: true },
-                }
-            );
-            await start_fun(ctx);
-        }
         if (ctx.message.location) {
             ctx.reply("locatsiya tashlandi!");
             console.log(ctx.update.message.location);

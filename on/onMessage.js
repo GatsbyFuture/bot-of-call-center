@@ -1,7 +1,12 @@
 const { Composer } = require('telegraf');
 const { bot } = require('../core/run');
 const composer = new Composer();
-const { start_fun, mainThree, sendContact,
+const {
+    start_fun,
+    Btns_for_driver,
+    Draw_yandex_route,
+    mainThree,
+    sendContact,
     main_buttons,
     allBaseBtn,
     send_excel,
@@ -31,20 +36,21 @@ composer.on('message', async (ctx) => {
         }
         // asosiy menular bilan ishlash...
         switch (ctx.message.text) {
-            // arxive dadasini chiqarib berish...
-            case ctx.i18n.t('mainFuntion1'):
-                // await show_addr(ctx); break;
-                await start_fun(ctx); break;
-            // tilni tanlashga qaytarish...
-            case ctx.i18n.t('mainFuntion2'):
-                await mainThree(ctx); break;
-            // hatdovchiga marshurud chizmasini berish uchun inlinebutton...
+            // driver uchun asosiy btn larni ochib berish..
             case ctx.i18n.t('mainDriverbtn1'):
-                await show_ready_product(ctx); break;
-            // await getRoute(ctx); break;
+                await Btns_for_driver(ctx);
+                break;
+            // yandexga o'tish uchun kartani koordinatalarini berish uchun
+            case ctx.i18n.t('mainDriverbtn2'):
+                await Draw_yandex_route(ctx);
+                break;
             case ctx.i18n.t('mainDriverbtn3'):
-            // await show_ready_product(ctx); break;
-
+                await show_ready_product(ctx);
+                break;
+            // tilni tanlashga qaytarish...
+            case ctx.i18n.t('changeLang'):
+                await mainThree(ctx);
+                break;
 
 
             // admin uchun kirish...

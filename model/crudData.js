@@ -58,7 +58,7 @@ const check_number = async (id, phone_number) => {
         console.log("Tel nomerni tekshirishda xatolik ->" + err);
     }
 }
-// driverni tekshiramiz bo'sh yoki bandligini
+//+++ driverni tekshiramiz bo'sh yoki bandligini
 const driver_is_busy = async (id) => {
     try {
         // boshligini tekshirish uchun query

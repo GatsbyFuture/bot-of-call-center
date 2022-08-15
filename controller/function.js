@@ -18,7 +18,8 @@ const {
     get_optimal_url,
     get_optimal_id,
     get_product_data,
-    amout_of_deliver
+    amout_of_deliver,
+    get_product_data_for_seller
 } = require('../model/crudData');
 String.prototype.insert = function (index, string) {
     var ind = index < 0 ? this.length + index : index;
@@ -36,11 +37,11 @@ const check_session = async (ctx) => {
         }
         else if (data["driver"]) {
             ctx.session.checkDriver = true;
-            await functions_for_driver(ctx)
+            await Btns_for_driver(ctx)
         }
         else if (data["seller"]) {
             ctx.session.checkSeller = true;
-            await Btn_for_customer(ctx);
+            await Btn_for_seller(ctx);
         }
     } else {
         ctx.replyWithHTML("Iltimos qayta /start buyrug'ini bosing!")
@@ -58,29 +59,34 @@ const start_fun = async (ctx) => {
             ])
         )
     ).then();
+    ctx.session.chat_id = ctx.message.from.id;
 }
 const Btns_for_driver = async (ctx) => {
     try {
         // tekshirib ko'ramiz agar bad bo'lsa unga tavar btn qo'shib beramiz...
-        let isTrue = await driver_is_busy(ctx.update.callback_query.from.id);
-        let btn = [];
-        if (isTrue) {
-            btn = [
-                [ctx.i18n.t('mainDriverbtn2'), ctx.i18n.t('mainDriverbtn3')],
-                [ctx.i18n.t('changeLang')]
-            ];
+        if (ctx.session.chat_id) {
+            let isTrue = await driver_is_busy(ctx.session.chat_id);
+            let btn = [];
+            if (isTrue) {
+                btn = [
+                    [ctx.i18n.t('mainDriverbtn2'), ctx.i18n.t('mainDriverbtn3')],
+                    [ctx.i18n.t('changeLang')]
+                ];
+            } else {
+                btn = [
+                    [ctx.i18n.t('mainDriverbtn1')],
+                    [ctx.i18n.t('changeLang')]
+                ];
+            }
+            await ctx.replyWithHTML(btn[0].length == 1 ? ctx.i18n.t('driver_btn1') : ctx.i18n.t('driver_btn2'),
+                Markup.keyboard(btn)
+                    .oneTime()
+                    .resize()
+                    .extra()
+            ).then();
         } else {
-            btn = [
-                [ctx.i18n.t('mainDriverbtn1')],
-                [ctx.i18n.t('changeLang')]
-            ];
+
         }
-        await ctx.replyWithHTML(btn[0].length == 1 ? ctx.i18n.t('driver_btn1') : ctx.i18n.t('driver_btn2'),
-            Markup.keyboard(btn)
-                .oneTime()
-                .resize()
-                .extra()
-        ).then();
     } catch (err) {
         console.log(err);
     }
@@ -89,23 +95,43 @@ const Btns_for_driver = async (ctx) => {
 const Draw_yandex_route = async (ctx) => {
     try {
         let optimal_url = await get_optimal_url(ctx.message.from.id);
-        await ctx.telegram.sendPhoto({
-            chat_id: ctx.message.from.id,
-            photo: "../imgs/mapIcon.jpg",
-            caption: ctx.i18n.t('description_for_map'),
-            parse_mode: "markdown",
-            reply_markup: Markup.inlineKeyboard([
-                [{
-                    text: ctx.i18n.t('linkLocation'),
-                    url: optimal_url
-                }],
-                [
-                    Markup.callbackButton('❌', 'exit_board'),
-                ],
-            ]),
+        console.log(optimal_url);
+        if (optimal_url) {
+            // await ctx.telegram
+            //     .sendMessage(ctx.message.from.id,
+            //         `\n\n🧮 Product statusi : 1`, {
+            //         reply_markup: Markup.inlineKeyboard([
+            //             [{
+            //                 text: ctx.i18n.t('linkLocation'),
+            //                 url: optimal_url
+            //             }],
+            //             [
+            //                 Markup.callbackButton('❌', 'exit_board'),
+            //             ],
+            //         ]),
+            //         parse_mode: 'html'
+            //     })
+            //     .then();
 
+            await ctx.replyWithPhoto({
+                source: fs.createReadStream("imgs/mapIcon.jpg")
+            },
+                Extra.caption(ctx.i18n.t('description_for_map'))
+                    .markup(Markup.inlineKeyboard([
+                        [{
+                            text: ctx.i18n.t('linkLocation'),
+                            url: optimal_url
+                        }],
+                        [
+                            Markup.callbackButton('❌', 'exit_board'),
+                        ]
+                    ]))
+                    .HTML()
+            ).then();
+
+        } else {
+            ctx.replyWithHTML("Kechirasiz sizga optimal yo'nalish chizmasini berishda xatolik bo'ldi!\n<i>(iltimos +998940020912 bilan bog'laning.)</i>");
         }
-        );
     } catch (error) {
         console.log(error);
     }
@@ -119,8 +145,8 @@ const Btn_for_customer = async (ctx) => {
                 text: ctx.i18n.t('mainFuntion0'),
                 request_location: true
             }],
-            [ctx.i18n.t('mainFuntion1')],
-            [ctx.i18n.t('mainFuntion2')]
+            // [ctx.i18n.t('mainFuntion1')],
+            [ctx.i18n.t('changeLang')]
         ])
             .oneTime()
             .resize()
@@ -128,16 +154,13 @@ const Btn_for_customer = async (ctx) => {
     )
         .then();
 }
-// customer uchun asosiy btn larni chiqarish...
+// seller uchun asosiy btn larni chiqarish...
 const Btn_for_seller = async (ctx) => {
     await ctx.replyWithHTML(ctx.i18n.t('mainFuntion3'),
         Markup.keyboard([
-            [{
-                text: ctx.i18n.t('mainFuntion0'),
-                request_location: true
-            }],
-            [ctx.i18n.t('mainFuntion1')],
-            [ctx.i18n.t('mainFuntion2')]
+            [ctx.i18n.t('mainSellerbtn1')],
+            // [ctx.i18n.t('mainFuntion1')],
+            [ctx.i18n.t('changeLang')]
         ])
             .oneTime()
             .resize()
@@ -145,8 +168,35 @@ const Btn_for_seller = async (ctx) => {
     )
         .then();
 }
+// seller xisibotini olish..
+const get_delevery = async (ctx) => {
+    let time = new Date();
+    let year = time.getFullYear();
+    let month = time.getMonth() + 1;
+    let day = time.getDate();
+    let date = "{yil}-{oy}-{kun}".replace("{yil}", year).replace("{oy}", month.length == 1 ? "0" + month : month).replace("{kun}", day);
+    let data = await get_product_data_for_seller(ctx.message.from.id, date);
+    let text = `Bugun ${date} sanasi bo'yicha berilgan buyurtmalar`;
+    for (let i = 0; i < data.length; i++) {
 
-// arxiv datani bittalab olib kelish bazadan...
+    }
+    await ctx.telegram
+        .sendMessage(ctx.message.from.id,
+            show_board0 + `\n\n🧮 Product statusi : ${status_text}`, {
+            reply_markup: Markup.inlineKeyboard([
+                [
+                    Markup.callbackButton('❌', 'exit_board'),
+                ]
+            ]),
+            parse_mode: 'html'
+        })
+        .then();
+}
+
+
+
+
+// yetkazib berish datalarini bittalab olib kelish bazadan...
 const show_ready_product = async (ctx) => {
     try {
         await ctx.reply(
@@ -156,8 +206,11 @@ const show_ready_product = async (ctx) => {
                 reply_markup: { remove_keyboard: true },
             }
         );
+        // bittalab urlni joylashtirish...
+        // let url0 = "https://yandex.uz/maps/10335/tashkent/?ll={longitude}%2C{latitude}&z=18.2";
+        let url0 = "https://yandex.uz/maps/10335/tashkent/?mode=routes&rtext={latitude}%2C{longitude}&rtt=auto&ruri=~~~~&z=15.18";
         // productlarni urlni olib kelish...
-        ctx.session.optimal_url = await get_optimal_url(ctx.message.from.id);
+        // ctx.session.optimal_url = await get_optimal_url(ctx.message.from.id);
         // tablitsa qilib driverga ko'rsatish (optimal ketma - ketlikni nomerini olib olish)..
         ctx.session.get_optimal_id = await get_optimal_id(ctx.message.from.id);
         // tekshiramiz agar malumotlar yetkazilsa yoki yo'q shunga qarb kamayib borishini balans qilamiz..
@@ -167,48 +220,70 @@ const show_ready_product = async (ctx) => {
         ctx.session.count = 0;
         // productni olib kelish..
         let product = await get_product_data(ctx.session.get_optimal_id[ctx.session.count]);
-        let btn_type = [];
-        if (0 < ctx.session.id_balans && product["status_of_deliver"] != 2 && product["status_of_deliver"] != 3 && product["status_of_deliver"] != 4 && product["status_of_deliver"] != 5) {
-            btn_type.push([
-                Markup.callbackButton(ctx.i18n.t('delivered1'), 'deliver1'),
-                Markup.callbackButton(ctx.i18n.t('delivered2'), 'deliver2')
-            ]);
-            btn_type.push([
-                Markup.callbackButton(ctx.i18n.t('delivered3'), 'deliver3'),
-                Markup.callbackButton(ctx.i18n.t('delivered4'), 'deliver4')
-            ]);
+        let url1 = url0.replace("{latitude}", product["latitude"]).replace("{longitude}", product["longitude"]);
+        let btn_type;
+        if (0 < ctx.session.id_balans && product["status_of_deliver"] == 1) {
+            btn_type = [
+                [{
+                    text: ctx.i18n.t('koordinata_to_map'),
+                    url: url1
+                }],
+                [
+                    Markup.callbackButton(ctx.i18n.t('delivered1'), 'deliver_1'),
+                    Markup.callbackButton(ctx.i18n.t('delivered2'), 'deliver_2')
+                ],
+                [
+                    Markup.callbackButton(ctx.i18n.t('delivered3'), 'deliver_3'),
+                    Markup.callbackButton(ctx.i18n.t('delivered4'), 'deliver_4')
+                ],
+                [
+                    Markup.callbackButton('⬅️', 'backBoard'),
+                    Markup.callbackButton('❌', 'exit_board'),
+                    Markup.callbackButton('➡️', 'nextBoard'),
+                ],
+            ]
+        } else if (0 < ctx.session.id_balans && (product["status_of_deliver"] == 2 || product["status_of_deliver"] == 3 || product["status_of_deliver"] == 4 || product["status_of_deliver"] == 5)) {
+            btn_type = [
+                [
+                    Markup.callbackButton('⬅️', 'backBoard'),
+                    Markup.callbackButton('❌', 'exit_board'),
+                    Markup.callbackButton('➡️', 'nextBoard'),
+                ]
+            ]
         } else if (ctx.session.id_balans == 0) {
-            btn_type.push(Markup.callbackButton(ctx.i18n.t('done_all_products'), 'done_all_products'));
+            btn_type = [
+                [
+                    Markup.callbackButton(ctx.i18n.t('done_all_products'), 'done_all_products')
+                ],
+                [
+                    Markup.callbackButton('⬅️', 'backBoard'),
+                    Markup.callbackButton('❌', 'exit_board'),
+                    Markup.callbackButton('➡️', 'nextBoard'),
+                ],
+            ]
         }
         let status_text = ctx.i18n.t('procces_of_deliver');
         if (product["status_of_deliver"] == 2) {
             status_text = ctx.i18n.t('status_deleved1');
         } else if (product["status_of_deliver"] == 3) {
             status_text = ctx.i18n.t('status_deleved2');
+        } else if (product["status_of_deliver"] == 4) {
+            status_text = ctx.i18n.t('status_deleved3');
+        } else if (product["status_of_deliver"] == 5) {
+            status_text = ctx.i18n.t('status_deleved4');
         }
         // olib kelingan productni textini yasab olish...
         const show_board0 = await show_data_board(ctx, product);
         await ctx.telegram
             .sendMessage(ctx.message.from.id,
                 show_board0 + `\n\n🧮 Product statusi : ${status_text}`, {
-                reply_markup: Markup.inlineKeyboard([
-                    [{
-                        text: ctx.i18n.t('linkLocation'),
-                        url: ctx.session.optimal_url
-                    }],
-                    btn_type,
-                    [
-                        Markup.callbackButton('⬅️', 'backBoard'),
-                        Markup.callbackButton('❌', 'exit_board'),
-                        Markup.callbackButton('➡️', 'nextBoard'),
-                    ],
-                ]),
+                reply_markup: Markup.inlineKeyboard(btn_type),
                 parse_mode: 'html'
             })
             .then();
 
     } catch (err) {
-        console.log("barcha product boardini chiqarishda xatolik: " + err);
+        console.log(err);
     }
 }
 // haydovchini 1 oyik xisoboti uchun...
@@ -442,5 +517,7 @@ module.exports = {
     isItNumber,
     Btns_for_driver,
     Draw_yandex_route,
+    Btn_for_seller,
+    get_delevery
 
 }

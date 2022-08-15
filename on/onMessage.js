@@ -6,19 +6,13 @@ const {
     Btns_for_driver,
     Draw_yandex_route,
     mainThree,
-    sendContact,
     main_buttons,
-    allBaseBtn,
-    send_excel,
-    down_excel,
-    read_excel,
-    show_data,
     show_ready_product,
-    // show_addr,
+    Btn_for_seller,
+    get_delevery,
     send_post,
     send_message,
     isItNumber,
-    getRoute
 } = require('../controller/function.js');
 const { add_location } = require('../model/crudData');
 const config = require('config');
@@ -44,8 +38,13 @@ composer.on('message', async (ctx) => {
             case ctx.i18n.t('mainDriverbtn2'):
                 await Draw_yandex_route(ctx);
                 break;
+            // driver o'zini yetkazib berishi kerak bo'lgan tovarlarini ro'yxatini ko'rish...
             case ctx.i18n.t('mainDriverbtn3'):
                 await show_ready_product(ctx);
+                break;
+            // seller uchun asosiy btn larni ochib berish...
+            case ctx.i18n.t('mainSellerbtn1'):
+                await get_delevery(ctx);
                 break;
             // tilni tanlashga qaytarish...
             case ctx.i18n.t('changeLang'):

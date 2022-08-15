@@ -304,6 +304,8 @@ const get_product_data = async (id) => {
         tb_order.shipment_payment,
         tb_order.product_payment,
         tb_order.status_of_deliver,
+        tb_order.latitude,
+        tb_order.longitude,
         tb_customer.name,
         tb_customer.lastname,
         tb_customer.phone_number
@@ -326,14 +328,13 @@ const update_delever_status = async (id, key) => {
         update
         tb_order
         set
-        status_of_deliver = ?
+        status_of_deliver = ?,
         status = 0
         where
         id = ?
         `;
-        let obj = await pool.query(ortder_qestion, [key, id]);
-        // console.log(obj[0]);
-        // return obj[0][0];
+        await pool.query(ortder_qestion, [key, id]);
+
     } catch (err) {
         console.log("Product datasini tortishda xatolik :" + err);
     }
@@ -349,8 +350,39 @@ const update_driver_busy = async (chat_id) => {
         where
         telegram_id = ?
         `;
-        let id_for_driver = await pool.query(update_of_busy, [chat_id]);
-        console.log(id_for_driver);
+        await pool.query(update_of_busy, [chat_id]);
+        let update_of_optimal_route = `
+        update
+        tb_optimal_route
+        set
+        status = 0
+        where
+        chat_id_of_driver = ?
+        `;
+        await pool.query(update_of_optimal_route, [chat_id]);
+        // console.log(id_for_driver);
+    } catch (err) {
+        console.log("Optimal routeni statusini update qilishda xatolik :" + err);
+    }
+}
+// get seller data and product data
+const get_product_data_for_seller = async (seller_id, date) => {
+    try {
+        // productni olib yuborish...
+        let ortder_qestion = `
+        select
+        tb_order.product_name,
+        tb_order.status_of_deliver,
+        tb_order.product_pay ,
+        tb_customer.name,
+        tb_customer.lastname,
+        from
+        tb_order
+        left join tb_customer on tb_customer.id = tb_order.customer_id
+        where tb_customer.telegram_id  = ? and started_time regexp '^?' 
+        `;
+        let obj = await pool.query(ortder_qestion, [id, date]);
+        return obj[0];
     } catch (err) {
         console.log("Product datasini tortishda xatolik :" + err);
     }
@@ -379,5 +411,6 @@ module.exports = {
     // deliverni statusini orderdan 2 ga ko'tarish
     update_delever_status,
     // driver busyni statusini 0 qilib qoyish...
-    update_driver_busy
+    update_driver_busy,
+    get_product_data_for_seller
 }

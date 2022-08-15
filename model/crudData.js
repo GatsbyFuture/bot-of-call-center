@@ -373,18 +373,19 @@ const get_product_data_for_seller = async (seller_id, date) => {
         select
         tb_order.product_name,
         tb_order.status_of_deliver,
-        tb_order.product_pay ,
+        tb_order.product_pay,
         tb_customer.name,
-        tb_customer.lastname,
+        tb_customer.lastname
         from
         tb_order
         left join tb_customer on tb_customer.id = tb_order.customer_id
-        where tb_customer.telegram_id  = ? and started_time regexp '^?' 
+        left join tb_seller on tb_seller.id = tb_order.seller_id
+        where tb_seller.telegram_id  = ? and tb_order.started_time regexp ? 
         `;
-        let obj = await pool.query(ortder_qestion, [id, date]);
+        let obj = await pool.query(ortder_qestion, [seller_id, "^" + date]);
         return obj[0];
     } catch (err) {
-        console.log("Product datasini tortishda xatolik :" + err);
+        console.log("seller xisobotini tortishda xatolik :" + err);
     }
 }
 

@@ -174,23 +174,55 @@ const get_delevery = async (ctx) => {
     let year = time.getFullYear();
     let month = time.getMonth() + 1;
     let day = time.getDate();
-    let date = "{yil}-{oy}-{kun}".replace("{yil}", year).replace("{oy}", month.length == 1 ? "0" + month : month).replace("{kun}", day);
+    let date = "{yil}-{oy}-{kun}".replace("{yil}", year).replace("{oy}", month.toString().length == 1 ? "0" + month : month).replace("{kun}", day);
+    console.log(date);
     let data = await get_product_data_for_seller(ctx.message.from.id, date);
-    let text = `Bugun ${date} sanasi bo'yicha berilgan buyurtmalar`;
-    for (let i = 0; i < data.length; i++) {
-
+    if (0 < data.length) {
+        let status_delivery = ["x", "y", "delivered1", "delivered2", "delivered3", "delivered4"];
+        let deliver_done = 0;
+        let deliver_procces = 0;
+        let deliver_console = 0;
+        let amount_summa = 0;
+        let text_start = `\n\nBugun ${date} sanasi bo'yicha berilgan buyurtmalar`;
+        console.log(data);
+        for (let i = 0; i < data.length; i++) {
+            console.log(data[i]);
+            text_start = text_start + `\n\n${i + 1} . ${data[i]["lastname"]} ${data[i]["name"]}
+            \n ${data[i]["product_name"]}
+            \n ${ctx.i18n.t(status_delivery[data[i]["status_of_deliver"]])}
+            \n ${data[i]["product_pay"]}`;
+            // yig'indilarni hisoblash...
+            if (data[i]["status_of_deliver"] == 2) {
+                deliver_done++;
+            } else if (data[i]["status_of_deliver"] == 1) {
+                deliver_procces++;
+            } else if (data[i]["status_of_deliver"] == 3 || data[i]["status_of_deliver"] == 4 || data[i]["status_of_deliver"] == 5) {
+                deliver_console++;
+            }
+            amount_summa += data[i]["product_pay"];
+        }
+        let text_end = `Buyurtmalar soni: ${data.length}\n
+    Yetkazib berilganlar: ${deliver_done}\n
+    Yetkazish jarayonida: ${deliver_procces}\n
+    Bekor qilinlar: ${deliver_console}\n
+    Yig'ilgan summa: ${amount_summa}`;
+        text_start = text_start + text_end;
+        await ctx.telegram
+            .sendMessage(ctx.message.from.id,
+                text_start, {
+                reply_markup: Markup.inlineKeyboard([
+                    [
+                        Markup.callbackButton('❌', 'exit_board2'),
+                    ]
+                ]),
+                parse_mode: 'html'
+            })
+            .then();
+        console.log(text_start);
+    } else {
+        ctx.replyWithHTML(ctx.i18n.t("mainSellerDontDeliver"));
     }
-    await ctx.telegram
-        .sendMessage(ctx.message.from.id,
-            show_board0 + `\n\n🧮 Product statusi : ${status_text}`, {
-            reply_markup: Markup.inlineKeyboard([
-                [
-                    Markup.callbackButton('❌', 'exit_board'),
-                ]
-            ]),
-            parse_mode: 'html'
-        })
-        .then();
+
 }
 
 

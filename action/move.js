@@ -69,8 +69,18 @@ composer.action('uz', async (ctx) => {
         console.log(err);
     }
 });
-// product doskadan ortga qaytish...
+// product doskadan ortga qaytish...haydovchilar uchun...
 composer.action("exit_board", async (ctx) => {
+    try {
+        ctx.deleteMessage().then();
+        await Btns_for_driver(ctx);
+        ctx.session.show_board = undefined;
+    } catch (err) {
+        console.log("Tovar ro'yxatidan ortga chiqarishda xatolik: " + err);
+    }
+});
+// product ni doskasidan ortga qaytishda... sellerlar uchun...
+composer.action("exit_board2", async (ctx) => {
     try {
         ctx.deleteMessage().then();
         await Btns_for_driver(ctx);
